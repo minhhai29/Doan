@@ -1,4 +1,4 @@
-package PServer;
+package PClient;
 
 import java.awt.EventQueue;
 
@@ -6,7 +6,6 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
-import database.JDBCUtil;
 import encryptions.AESEncryption;
 
 import javax.swing.JLabel;
@@ -24,18 +23,11 @@ import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Serializable;
 import java.net.Socket;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.awt.event.ActionEvent;
 import javax.swing.JPasswordField;
 
@@ -103,9 +95,12 @@ public class Login extends JFrame {
 			        String hashedPassword = hashPassword(password);
 					try {
 						BufferedWriter out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-			            out.write("login\n");
-			            out.write(email + "\n");
-			            out.write(hashedPassword + "\n");
+						String loginM = AESEncryption.encrypt("login", Client.keyAES);
+						String mailM = AESEncryption.encrypt(email, Client.keyAES);
+						String hashedPasswordM = AESEncryption.encrypt(hashedPassword, Client.keyAES);
+			            out.write(loginM+"\n");
+			            out.write(mailM + "\n");
+			            out.write(hashedPasswordM + "\n");
 			            out.flush();
 
 			        } catch (Exception ex) {

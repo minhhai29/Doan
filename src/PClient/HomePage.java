@@ -1,4 +1,4 @@
-package PServer;
+package PClient;
 
 import java.awt.EventQueue;
 
@@ -7,18 +7,15 @@ import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
 import PClient.Client;
+import encryptions.AESEncryption;
 
 import javax.swing.JLabel;
 
 import java.awt.Font;
 import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
-import javax.swing.Timer;
 import javax.swing.JButton;
 import java.awt.event.ActionListener;
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.awt.event.ActionEvent;
@@ -27,8 +24,6 @@ import javax.swing.JDialog;
 public class HomePage extends JFrame {
 	private static Socket socket;
 	private JPanel contentPane;
-	private int secondsPassed = 0;
-	private Timer timer;
 	private JLabel lblNewLabel_5;
 	// private MatchmakingServer matchmakingServer;
 	private String username; // Biến instance để lưu trữ playerName
@@ -36,8 +31,10 @@ public class HomePage extends JFrame {
 	private JLabel lblNewLabel_1;
 	private JLabel lblNewLabel_2;
 	private JLabel lblNewLabel_3;
+	private JButton btnNewButton_1;
 	private String email; 
 	private int pointIQ;
+
 	/**
 	 * Launch the application.
 	 */
@@ -88,15 +85,21 @@ public class HomePage extends JFrame {
 		lblNewLabel_3.setFont(new Font("Tahoma", Font.BOLD, 12));
 		contentPane.add(lblNewLabel_3);
 
+		lblNewLabel_5 = new JLabel("");
+		lblNewLabel_5.setFont(new Font("Tahoma", Font.BOLD, 12));
+		lblNewLabel_5.setBounds(265, 292, 171, 14);
+		contentPane.add(lblNewLabel_5);
+		
 		JButton btnNewButton = new JButton("Bài test IQ");
 		btnNewButton.setBounds(60, 236, 115, 45);
 		btnNewButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				try {
 					BufferedWriter out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-					BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-		            out.write("testiq\n");
-		            out.write(email);
+					String testiqM = AESEncryption.encrypt("testiq", Client.keyAES);
+					String mailM = AESEncryption.encrypt(email, Client.keyAES);
+		            out.write(testiqM+"\n");
+		            out.write(mailM+"\n");
 		            out.flush();
 		            
 		        } catch (Exception ex) {
@@ -108,10 +111,21 @@ public class HomePage extends JFrame {
 		btnNewButton.setFont(new Font("Tahoma", Font.PLAIN, 12));
 		contentPane.add(btnNewButton);
 
-		JButton btnNewButton_1 = new JButton("Tìm trận");
+		btnNewButton_1 = new JButton("Tìm trận");
 		btnNewButton_1.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				startTimer();
+				try {
+					BufferedWriter out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+					lblNewLabel_5.setText("Đang tìm trận...");
+					String matchfindM = AESEncryption.encrypt("matchfind", Client.keyAES);
+					String usernameM = AESEncryption.encrypt(username, Client.keyAES);
+		            out.write(matchfindM + "\n");
+		            out.write(usernameM +"\n");
+		            out.flush();
+		            btnNewButton_1.setEnabled(false);
+		        } catch (Exception ex) {
+		            ex.printStackTrace();
+		        }
 			}
 		});
 		btnNewButton_1.setBounds(265, 236, 115, 45);
@@ -124,7 +138,8 @@ public class HomePage extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				try {
 		            BufferedWriter out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-		            out.write("logout\n");
+		            String logoutM = AESEncryption.encrypt("logout", Client.keyAES);
+		            out.write(logoutM + "\n");
 		            out.flush();
 		            
 		        } catch (Exception ex) {
@@ -135,47 +150,10 @@ public class HomePage extends JFrame {
 		});
 		contentPane.add(btnNewButton_2);
 
-		JLabel lblNewLabel_4 = new JLabel("Nhấn");
-		lblNewLabel_4.setBounds(265, 211, 46, 14);
-		contentPane.add(lblNewLabel_4);
 
 	}
 
-	private void startTimer() {
-		if (lblNewLabel_5 == null) {
-
-			lblNewLabel_5 = new JLabel("Thời gian bắt đầu 60 giây");
-			lblNewLabel_5.setFont(new Font("Tahoma", Font.BOLD, 12));
-			lblNewLabel_5.setBounds(265, 292, 171, 14);
-			contentPane.add(lblNewLabel_5);
-		}
-		final int totalTime = 60;
-		timer = new Timer(1000, new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				secondsPassed++;
-				int remainingTime = totalTime - secondsPassed;
-				lblNewLabel_5.setText("Thời gian bắt đầu " + remainingTime + " giây");
-				// sendMatchNotification(playerName, opponent);
-				// matchmakingServer.startMatchmaking(playerName);
-				if (remainingTime <= 0) {
-					timer.stop();
-					resetTimer();
-				}
-			}
-		});
-		if (!timer.isRunning()) {
-			timer.start();
-		}
-	}
-
-	private void resetTimer() {
-		if (timer != null && timer.isRunning()) {
-			timer.stop();
-		}
-		secondsPassed = 0;
-		lblNewLabel_5.setText("Thời gian bắt đầu 60 giây");
-	}
+	
 
 	public void setUsername(String username) {
 		
@@ -190,11 +168,21 @@ public class HomePage extends JFrame {
         this.email = email;
     }
 	public String getEmail() {
-	    return email; // Giả sử textField là JTextField chứa email
+	    return email; 
 	}
 	public void setIQ(int pointIQ) {
 		
         this.pointIQ = pointIQ;
         lblNewLabel_3.setText("Điểm IQ: " + pointIQ);
+    }
+	public void resetStatusLabel() {
+        EventQueue.invokeLater(() -> {
+            lblNewLabel_5.setText("");
+        });
+    }
+	public void enableMatchButton(boolean enable) {
+        EventQueue.invokeLater(() -> {
+            btnNewButton_1.setEnabled(enable);
+        });
     }
 }

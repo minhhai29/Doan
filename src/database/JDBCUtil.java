@@ -13,9 +13,9 @@ public class JDBCUtil {
 		Connection c = null;
 		try {
 			DriverManager.registerDriver(new com.mysql.cj.jdbc.Driver());
-			String url="jdbc:mysql://192.168.1.9:12345/user";
+			String url="jdbc:mysql://localhost:12345/user";
 			String username = "root";
-            String password = "3119410108";
+            String password = "123456";
             c = DriverManager.getConnection(url, username, password);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block

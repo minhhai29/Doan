@@ -1,4 +1,4 @@
-package PServer;
+package PClient;
 
 import java.awt.EventQueue;
 import javax.swing.*;
@@ -7,7 +7,7 @@ import java.util.Random;
 
 import javax.swing.border.EmptyBorder;
 
-import database.JDBCUtil;
+import encryptions.AESEncryption;
 
 import java.awt.Font;
 import java.awt.event.ActionListener;
@@ -16,10 +16,6 @@ import java.io.BufferedWriter;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.awt.event.ActionEvent;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -107,11 +103,16 @@ public class SignUp extends JFrame {
 						
 						try {
 							BufferedWriter out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-				            out.write("register\n");
+							String registerM = AESEncryption.encrypt("regiter", Client.keyAES);
+							String mailM = AESEncryption.encrypt(email, Client.keyAES);
+							String hashedPasswordM = AESEncryption.encrypt(hashedPassword, Client.keyAES);
+							String usernameM = AESEncryption.encrypt(username, Client.keyAES);
+							String genderM = AESEncryption.encrypt(gender, Client.keyAES);
+				            out.write(registerM+"\n");
 				            out.write(email + "\n");
-				            out.write(hashedPassword + "\n");
-				            out.write(username + "\n");
-				            out.write(gender + "\n");
+				            out.write(hashedPasswordM + "\n");
+				            out.write(usernameM + "\n");
+				            out.write(genderM + "\n");
 				            out.flush();
 
 		                } catch (Exception ex) {
