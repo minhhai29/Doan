@@ -29,18 +29,7 @@ public class SignUp extends JFrame {
     /**
      * Launch the application.
      */
-    public static void main(String[] args) {
-        EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                try {
-                    SignUp frame = new SignUp(socket);
-                    frame.setVisible(true);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-    }
+    
 
     /**
      * Create the frame.
@@ -103,16 +92,11 @@ public class SignUp extends JFrame {
 						
 						try {
 							BufferedWriter out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-							String registerM = AESEncryption.encrypt("regiter", Client.keyAES);
-							String mailM = AESEncryption.encrypt(email, Client.keyAES);
-							String hashedPasswordM = AESEncryption.encrypt(hashedPassword, Client.keyAES);
-							String usernameM = AESEncryption.encrypt(username, Client.keyAES);
-							String genderM = AESEncryption.encrypt(gender, Client.keyAES);
-				            out.write(registerM+"\n");
+				            out.write("register"+"\n");
 				            out.write(email + "\n");
-				            out.write(hashedPasswordM + "\n");
-				            out.write(usernameM + "\n");
-				            out.write(genderM + "\n");
+				            out.write(hashedPassword + "\n");
+				            out.write(username + "\n");
+				            out.write(gender + "\n");
 				            out.flush();
 
 		                } catch (Exception ex) {

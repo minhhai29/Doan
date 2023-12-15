@@ -10,5 +10,9 @@
 	<classpathentry kind="lib" path="D:/CuaHai/javax.mail.jar"/>
 	<classpathentry kind="lib" path="D:/CuaHai/mysql-connector-java-8.0.26.jar"/>
 	<classpathentry kind="lib" path="D:/CuaHai/protobuf-java-3.11.4.jar"/>
+	<classpathentry kind="lib" path="D:/CuaHai/gson-2.8.2.jar"/>
+	<classpathentry kind="lib" path="D:/CuaHai/jackson-annotations-2.16.0.jar"/>
+	<classpathentry kind="lib" path="D:/CuaHai/jackson-core-2.16.0.jar"/>
+	<classpathentry kind="lib" path="D:/CuaHai/jackson-databind-2.16.0.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

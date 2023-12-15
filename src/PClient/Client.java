@@ -20,6 +20,7 @@ import PClient.ImageViewerFrame;
 import PClient.Login;
 import PClient.SignUp;
 import PClient.inGame;
+import PClient.QuizClientFrame;
 import encryptions.AESEncryption;
 import encryptions.RSAEncryption;
 
@@ -31,7 +32,7 @@ public class Client {
     private static PrivateKey myPrivateKey;
     public static void main(String[] args) throws Exception {
         try {
-            host = "192.168.254.120";
+            host = "192.168.32.100";
             socket = new Socket(host, 2911);
             
             System.out.println("Connected to server");
@@ -40,55 +41,34 @@ public class Client {
             
             BufferedWriter out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-         // khóa công khai của Server
-            String publicKeyStringFromServer = in.readLine();
-            publicKeyFromServer = convertBytesToPublicKey(Base64.getDecoder().decode(publicKeyStringFromServer));
-
-            // khóa đối xứng đã được mã hóa bằng khóa công khai do Server chia sẻ
-            keyAES = AESEncryption.generateKey();
-            String keyAESString = Base64.getEncoder().encodeToString(keyAES.getEncoded());
-            String keyAESEncode = RSAEncryption.encrypt(keyAESString, publicKeyFromServer);
-
-            // khóa công khai của Client để cho Server nhận, sau này Server mã hóa khóa đối xứng để gửi qua mạng
-            KeyPair keyPair = RSAEncryption.generateKeyPair();
-            PublicKey myPublicKey = keyPair.getPublic();
-            String myPublicKeyString = Base64.getEncoder().encodeToString(myPublicKey.getEncoded());
-            myPrivateKey = keyPair.getPrivate();
-
-            out.write(myPublicKeyString);
-            out.newLine();
-            out.write(keyAESEncode);
-            out.newLine();
-            out.flush();
+           
             EventQueue.invokeLater(() -> {
                 loginFrame.setVisible(true);
             });
             String messageToSend = "Hello from client!";
-            String encryptedMessage = AESEncryption.encrypt(messageToSend, keyAES);
             
-            out.write(encryptedMessage + "\n");
+            out.write(messageToSend  + "\n");
             out.flush();
 
             StringBuilder serverResponseBuilder = new StringBuilder();
             int character;
             while ((character = in.read()) != -1) {
                 if (character == '\n') {
+                	String on = "on";
+                	String off = "off";
                     // Khi đọc ký tự xuống dòng, kiểm tra và xử lý dữ liệu từ server
                     String serverResponse = serverResponseBuilder.toString().trim();
-                    String responseAES = AESEncryption.decrypt(serverResponse, keyAES);
-                    System.out.println("Server response: " + responseAES);
-                    if ("Login successful".equals(responseAES)) {
+                    System.out.println("Server response: " + serverResponse);
+                    if ("Login successful".equals(serverResponse)) {
                         // Xử lý khi đăng nhập thành công
                         String email = loginFrame.getEmail();
-                        updateOnlineStatus(email, 1);
+                        updateOnlineStatus(email, on);
                         homePageFrame.setEmail(email);
-                        String usernameaes = in.readLine();
-                        String playerDataStringaes = in.readLine();
-                        String username = AESEncryption.decrypt(usernameaes, keyAES);
-                        String playerDataString = AESEncryption.decrypt(playerDataStringaes, keyAES);
+                        String username = in.readLine();
+                        String playerDataString = in.readLine();
                         String[] playerDataArray = playerDataString.split(",");
-                        int playerRank = Integer.parseInt(playerDataArray[0]);
-                        int pointIQ = Integer.parseInt(playerDataArray[1]);
+                        String playerRank = playerDataArray[0];
+                        String pointIQ = playerDataArray[1];
                         
                         EventQueue.invokeLater(() -> {
                             homePageFrame.setPlayerRank(playerRank);
@@ -109,12 +89,11 @@ public class Client {
 		                JOptionPane.showMessageDialog(null, "Tên người dùng đã tồn tại.", "Lỗi", JOptionPane.ERROR_MESSAGE);
 		            } else if ("send_otp".equals(serverResponse)) {
 		                String enteredOTP = JOptionPane.showInputDialog("Nhập mã OTP đã gửi đến email của bạn:");
-		                String encryptedMes = AESEncryption.encrypt(enteredOTP, keyAES);
-		                out.write(encryptedMes + "\n");
+		                out.write(enteredOTP + "\n");
 		                out.flush();  
 		            } else if ("Logout successful".equals(serverResponse.trim())) {
 		            	String email = homePageFrame.getEmail();
-		            	updateOnlineStatus(email, 0);
+		            	updateOnlineStatus(email, off);
 		            	loginFrame.resetLoginForm();
 		            	loginFrame.setVisible(true);
 		            	homePageFrame.dispose();
@@ -130,10 +109,21 @@ public class Client {
 	                	homePageFrame.enableMatchButton(true);
 	                }else if("matchfound".equals(serverResponse.trim())) {
 	                	JOptionPane.showMessageDialog(null, "Đã tìm thấy đối thủ!");
-		                        inGame ingame = new inGame(socket);
-			                	ingame.setVisible(true);
+                        inGame ingame = new inGame(socket);
+	                	ingame.setVisible(true);
+	                	homePageFrame.resetStatusLabel();
 	                }
-
+	                else if("Cho phép test IQ".equals(serverResponse.trim())) {
+	                	String Jsonlist = in.readLine();
+	                	System.out.print(Jsonlist);
+	                	QuizClientFrame quiz = new QuizClientFrame(socket);
+	                	EventQueue.invokeLater(() -> {
+	                		quiz.setJson(Jsonlist);
+	                		quiz.setVisible(true);
+	                    });
+	                }else if("Đã test IQ".equals(serverResponse.trim())) {
+	                	JOptionPane.showMessageDialog(null, "Bạn đã test IQ trước đó!");
+	                }
                     // Reset StringBuilder để đọc phản hồi tiếp theo
                     serverResponseBuilder.setLength(0);
                 } else {
@@ -144,23 +134,39 @@ public class Client {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        
     }
-    private static PublicKey convertBytesToPublicKey(byte[] keyBytes) throws Exception {
-        KeyFactory keyFactory = KeyFactory.getInstance("RSA"); // Thay "RSA" bằng thuật toán sử dụng
-        X509EncodedKeySpec keySpec = new X509EncodedKeySpec(keyBytes);
-        return keyFactory.generatePublic(keySpec);
-    }
-    public static void updateOnlineStatus(String email, int status) throws Exception {
+    
+    public static void updateOnlineStatus(String email, String status) throws Exception {
         try {
             BufferedWriter out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-            String updateMes = AESEncryption.encrypt("updatestatus", keyAES);
-            String mailMes = AESEncryption.encrypt(email, keyAES);
-            out.write(updateMes + "n");
-            out.write(mailMes + "\n");
+            out.write("updatestatus" + "\n");
+            out.write(email + "\n");
             out.write(status + "\n");
             out.flush();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+    private static PublicKey convertBytesToPublicKey(byte[] keyBytes) throws Exception {
+        KeyFactory keyFactory = KeyFactory.getInstance("RSA"); // Thay "RSA" bằng thuật toán sử dụng
+        X509EncodedKeySpec keySpec = new X509EncodedKeySpec(keyBytes);
+        return keyFactory.generatePublic(keySpec);
+    }
+	 static class ImageData {
+	        private byte[] imageData;
+	        private String correctAnswer;
+
+	        public ImageData( byte[] imageData, String correctAnswer)  {
+	            this.imageData = imageData;
+	            this.correctAnswer = correctAnswer;
+	        }
+	        public byte[] getImageData() {
+	            return imageData;
+	        }
+
+	        public String getCorrectAnswer() {
+	            return correctAnswer;
+	        }
+	    }
 }

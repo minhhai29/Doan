@@ -20,7 +20,7 @@ public class inGame extends JFrame {
     private JTextArea questionTextArea;
     private JButton[] answerButtons;
     private JLabel scoreLabel;
-    private static Socket socket;
+    public static Socket socket;
 
     public static void main(String[] args) {
         EventQueue.invokeLater(new Runnable() {

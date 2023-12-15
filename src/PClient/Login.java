@@ -41,18 +41,6 @@ public class Login extends JFrame {
 	/**
 	 * Launch the application.
 	 */
-	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					Login frame = new Login(socket);
-					frame.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}
 
 	/**
 	 * Create the frame.
@@ -95,12 +83,9 @@ public class Login extends JFrame {
 			        String hashedPassword = hashPassword(password);
 					try {
 						BufferedWriter out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-						String loginM = AESEncryption.encrypt("login", Client.keyAES);
-						String mailM = AESEncryption.encrypt(email, Client.keyAES);
-						String hashedPasswordM = AESEncryption.encrypt(hashedPassword, Client.keyAES);
-			            out.write(loginM+"\n");
-			            out.write(mailM + "\n");
-			            out.write(hashedPasswordM + "\n");
+			            out.write("login"+"\n");
+			            out.write(email + "\n");
+			            out.write(hashedPassword + "\n");
 			            out.flush();
 
 			        } catch (Exception ex) {

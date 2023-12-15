@@ -27,29 +27,18 @@ public class HomePage extends JFrame {
 	private JLabel lblNewLabel_5;
 	// private MatchmakingServer matchmakingServer;
 	private String username; // Biến instance để lưu trữ playerName
-	private int playerRank;
+	private String playerRank;
 	private JLabel lblNewLabel_1;
 	private JLabel lblNewLabel_2;
 	private JLabel lblNewLabel_3;
 	private JButton btnNewButton_1;
 	private String email; 
-	private int pointIQ;
+	private String pointIQ;
 
 	/**
 	 * Launch the application.
 	 */
-	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					HomePage frame = new HomePage(socket);
-					frame.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}
+
 
 	/**
 	 * Create the frame.
@@ -96,10 +85,8 @@ public class HomePage extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				try {
 					BufferedWriter out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-					String testiqM = AESEncryption.encrypt("testiq", Client.keyAES);
-					String mailM = AESEncryption.encrypt(email, Client.keyAES);
-		            out.write(testiqM+"\n");
-		            out.write(mailM+"\n");
+		            out.write("testIQ"+"\n");
+		            out.write(email+"\n");
 		            out.flush();
 		            
 		        } catch (Exception ex) {
@@ -117,10 +104,8 @@ public class HomePage extends JFrame {
 				try {
 					BufferedWriter out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
 					lblNewLabel_5.setText("Đang tìm trận...");
-					String matchfindM = AESEncryption.encrypt("matchfind", Client.keyAES);
-					String usernameM = AESEncryption.encrypt(username, Client.keyAES);
-		            out.write(matchfindM + "\n");
-		            out.write(usernameM +"\n");
+		            out.write("matchfind" + "\n");
+		            out.write(username +"\n");
 		            out.flush();
 		            btnNewButton_1.setEnabled(false);
 		        } catch (Exception ex) {
@@ -138,8 +123,7 @@ public class HomePage extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				try {
 		            BufferedWriter out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-		            String logoutM = AESEncryption.encrypt("logout", Client.keyAES);
-		            out.write(logoutM + "\n");
+		            out.write("logout" + "\n");
 		            out.flush();
 		            
 		        } catch (Exception ex) {
@@ -160,7 +144,7 @@ public class HomePage extends JFrame {
         this.username = username;
         lblNewLabel_1.setText("Tên người chơi: " + username);
     }
-	public void setPlayerRank(int playerRank) {
+	public void setPlayerRank(String playerRank) {
         this.playerRank = playerRank;
         lblNewLabel_2.setText("Xếp hạng: " + playerRank);
     }
@@ -170,7 +154,7 @@ public class HomePage extends JFrame {
 	public String getEmail() {
 	    return email; 
 	}
-	public void setIQ(int pointIQ) {
+	public void setIQ(String pointIQ) {
 		
         this.pointIQ = pointIQ;
         lblNewLabel_3.setText("Điểm IQ: " + pointIQ);
